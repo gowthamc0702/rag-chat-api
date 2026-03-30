@@ -150,6 +150,22 @@ If relevant context exists, the system builds a structured prompt combining retr
 This improves both response quality and robustness compared to pure RAG systems.
 
 ---
+ 
+## Key Engineering Challenges
+ 
+**RAG Retrieval Quality**
+Cosine similarity alone returned semantically similar but contextually irrelevant results. Pure vector search doesn't capture relevance — it captures similarity. Fixed by introducing hybrid re-ranking combining semantic score, keyword overlap, and recency weighting.
+ 
+**Context Ordering in LLM Responses**
+Older retrieved messages were conflicting with newer ones, causing inconsistent responses. RAG retrieval is unordered by default — LLMs are sensitive to the order context is presented. Fixed by adding recency scoring and structuring the prompt to separate historical context from recent messages.
+ 
+**Cold Start / Empty Context**
+The system failed on first query when no chat history existed — the RAG pipeline expected context that wasn't there. Fixed by introducing a fallback to general LLM mode when retrieval returns no meaningful context, making the system handle zero-history gracefully.
+ 
+**Embedding Dimension Mismatch**
+Runtime errors during similarity search caused by a mismatch between the embedding model's output dimensions and the pgvector schema definition. Fixed by verifying model output size and updating the schema to `Vector(1024)`. Vector databases require strict dimensional consistency — there's no runtime coercion.
+ 
+---
 
 ## Known Limitations / Future Improvements
 
